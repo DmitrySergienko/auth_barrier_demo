@@ -14,12 +14,31 @@ class _MyHomePageState extends State<MyHomePage> {
   final userService = UserService();
 
   void _handleCreateUser() async {
-    final result = await userService.createUser(
-      userName: _usernameController.text,
-      email: _emailController.text,
-      password: _passwordController.text,
-      isAgreed: _isAgreedController.value,
-    );
+    try {
+      final result = await userService.createUser(
+        userName: _usernameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        isAgreed: _isAgreedController.value,
+      );
+
+      if (result == null) {
+        // User creation was successful
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Пользователь успешно создан!')),
+        );
+      } else {
+        // Something went wrong
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result)),
+        );
+      }
+    } catch (error) {
+      // Unexpected error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Неизвестная ошибка: $error')),
+      );
+    }
   }
 
   void _handleCreateAuth() {
