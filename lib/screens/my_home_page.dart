@@ -16,7 +16,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _handleCreateUser() async {
     try {
       final result = await userService.createUser(
-        userName: _usernameController.text,
+        firstName: _usernameController.text,
         email: _emailController.text,
         password: _passwordController.text,
         isAgreed: _isAgreedController.value,
@@ -38,15 +38,36 @@ class _MyHomePageState extends State<MyHomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Неизвестная ошибка: $error')),
       );
+      print('Неизвестная ошибка: $error');
     }
   }
 
-  void _handleCreateAuth() {
-    userService.authorizeUser(
-      userName: _usernameController.text,
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
+  void _handleCreateAuth() async {
+    try {
+      final result = await userService.authorizeUser(
+        userName: _usernameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      if (result == null) {
+        // Authorization was successful
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Авторизация прошла успешно!')),
+        );
+      } else {
+        // Something went wrong
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result)),
+        );
+      }
+    } catch (error) {
+      // Unexpected error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Неизвестная ошибка: $error')),
+      );
+      print('Неизвестная ошибка: $error');
+    }
   }
 
   @override
@@ -64,9 +85,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email')),
             TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                    labelText: 'Пароль')), // Изменил текст метки на русский
+              controller: _passwordController,
+              obscureText: false,
+              decoration: const InputDecoration(labelText: 'Пароль'),
+            ),
             CheckboxListTile(
               title: const Text('Согласие на обработку данных'),
               value: _isAgreedController.value,
