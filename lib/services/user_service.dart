@@ -1,40 +1,46 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'package:dio/dio.dart';
+
 class UserService {
+  final Dio _dio = Dio();
+
   static const _baseUrl = 'https://dev.barrier.ru';
 
-  Future<String?> createUser({
-    required String firstName,
-    required String email,
-    required String password,
-    required bool isAgreed,
-  }) async {
-    final url = Uri.parse('$_baseUrl/v1/users/users');
-
-    final body = utf8.encode(json.encode({
-      'first_name': 'TestName',
-    }));
-
+  Future<Map<String, dynamic>> createUser(
+      {required String userName,
+      required String email,
+      required String password,
+      required bool agreed}) async {
     try {
-      var response = await http.post(url,
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json; charset=utf-8'
-          },
-          body: body);
+      // Set the headers.
+      _dio.options.headers['Content-Type'] = 'application/json';
 
-      print('status code: ${response.statusCode}');
+      // Create the request.
+      final response =
+          await _dio.post('https://dev.barrier.ru/v1/users/users', data: {
+        'first_name': userName,
+        'email': email,
+        'password': password,
+        'is_agreed': agreed
+      });
 
       if (response.statusCode == 201) {
-        return null; // Success
+        return {'status': 'success', 'message': response.data.toString()};
       } else {
-        // Return error message or description based on the status code
-        return 'HTTP error: ${response.statusCode}. Response body: ${response.body}';
+        // Handle other status codes...
+        return {
+          'status': 'error',
+          'message': '[Your error message based on the status code]'
+        };
       }
-    } catch (e) {
-      print('Error: $e');
-      return 'Unexpected error: $e';
+    } catch (error) {
+      print('Error during user creation: $error');
+      return {
+        'status': 'error',
+        'message': 'Error during user creation: $error'
+      };
     }
   }
 
