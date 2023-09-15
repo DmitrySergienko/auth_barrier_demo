@@ -12,44 +12,29 @@ class UserService {
   }) async {
     final url = Uri.parse('$_baseUrl/v1/users/users');
 
-    final headers = {
-      'Content-Type': 'application/json',
-    };
+    final body = utf8.encode(json.encode({
+      'first_name': 'TestName',
+    }));
 
-    final body = json.encode({
-      'first_name': firstName,
-      'email': email,
-      'password': password,
-      'is_agreed': isAgreed,
-    });
-
-    var client = http.Client();
     try {
-      var response = await client.post(url, headers: headers, body: body);
+      var response = await http.post(url,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8'
+          },
+          body: body);
 
-      print('Response body: ${response.body}');
+      print('status code: ${response.statusCode}');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        try {
-          var decodedResponse =
-              jsonDecode(utf8.decode(response.bodyBytes)) as Map;
-          if (decodedResponse.containsKey('uri')) {
-            var uri = Uri.parse(decodedResponse['uri'] as String);
-
-            print(await client.get(uri));
-          } else {
-            print('URI key not found in the response.');
-          }
-        } catch (e) {
-          print('Error decoding JSON: $e');
-          print('Response body: ${response.body}');
-        }
+      if (response.statusCode == 201) {
+        return null; // Success
       } else {
-        print(
-            'HTTP error: ${response.statusCode}. Response body: ${response.body}');
+        // Return error message or description based on the status code
+        return 'HTTP error: ${response.statusCode}. Response body: ${response.body}';
       }
-    } finally {
-      client.close();
+    } catch (e) {
+      print('Error: $e');
+      return 'Unexpected error: $e';
     }
   }
 
@@ -59,6 +44,7 @@ class UserService {
     required String password,
   }) async {
     final base64Credentials = base64Encode(utf8.encode('${email}:${password}'));
+
     final headers = {
       'Authorization': 'Basic $base64Credentials',
       'Content-Type': 'application/json',
